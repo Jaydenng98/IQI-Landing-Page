@@ -589,7 +589,32 @@
   footer{ border-top:1px solid var(--line); padding:28px 0; text-align:center; font-size:12.5px; color:var(--ink-faint); }
 
 #page-listing { display:none; }
-</style>
+/* SCAM WARNING BANNER */
+.scam-banner{ background:#FFF4E5; border-bottom:1px solid #FFE0B2; padding:10px 24px; display:flex; align-items:flex-start; gap:12px; font-size:13px; color:#1f2937; position:relative; }
+.scam-banner .scam-icon{ font-size:20px; line-height:1; flex-shrink:0; }
+.scam-banner .scam-text b{ font-weight:700; }
+.scam-banner .scam-text a{ color:#DB3C00; font-weight:700; text-decoration:underline; cursor:pointer; }
+.scam-banner .scam-close{ position:absolute; right:16px; top:8px; cursor:pointer; font-size:18px; color:#6b7280; background:none; border:none; }
+.scam-banner .scam-close:hover{ color:#111827; }
+
+/* JIQI CHAT WIDGET */
+#jiqi-widget{ position:fixed; right:24px; bottom:24px; z-index:9998; display:flex; align-items:center; gap:10px; }
+#jiqi-bubble{ background:#fff; border-radius:20px; box-shadow:0 6px 20px rgba(0,0,0,.15); padding:12px 16px; font-size:14px; color:#111827; display:flex; align-items:center; gap:8px; white-space:nowrap; animation:jiqiFloat 3s ease-in-out infinite; }
+#jiqi-bubble .jiqi-close{ margin-left:8px; cursor:pointer; color:#9ca3af; font-size:14px; }
+#jiqi-bubble .jiqi-close:hover{ color:#374151; }
+#jiqi-avatar{ width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#FDB913,#DB3C00); display:flex; align-items:center; justify-content:center; font-size:30px; box-shadow:0 6px 16px rgba(0,0,0,.25); cursor:pointer; flex-shrink:0; border:3px solid #fff; }
+@keyframes jiqiFloat{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-4px);} }
+#jiqi-panel{ position:fixed; right:24px; bottom:100px; width:300px; max-width:calc(100vw - 48px); background:#fff; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,.25); overflow:hidden; z-index:9999; display:none; }
+#jiqi-panel.open{ display:block; }
+#jiqi-panel-header{ background:linear-gradient(135deg,#111827,#1f2937); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:10px; }
+#jiqi-panel-header .jiqi-mini-avatar{ width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#FDB913,#DB3C00); display:flex; align-items:center; justify-content:center; font-size:18px; }
+#jiqi-panel-header .jiqi-title{ font-weight:600; font-size:14px; }
+#jiqi-panel-header .jiqi-sub{ font-size:11px; opacity:.75; }
+#jiqi-panel-body{ padding:16px; font-size:13px; color:#374151; line-height:1.6; max-height:220px; overflow-y:auto; }
+#jiqi-panel-input{ display:flex; border-top:1px solid #eee; }
+#jiqi-panel-input input{ flex:1; border:none; padding:10px 12px; font-size:13px; outline:none; }
+#jiqi-panel-input button{ border:none; background:#DB3C00; color:#fff; padding:0 16px; cursor:pointer; font-weight:600; }
+
 </head>
 <body>
 
@@ -605,6 +630,15 @@
 
 <div id="page-home">
 
+
+<div class="scam-banner" id="scam-banner">
+  <span class="scam-icon">⚠️</span>
+  <div class="scam-text">
+    <b>IQI does not condone scammers.</b> Never transfer funds to personal accounts! All payments must go to <b>IQI REALTY SDN BHD</b> only.<br>
+    If you encounter suspicious activity, <a onclick="alert('Please contact IQI support to report suspicious activity.')">report it to IQI immediately.</a>
+  </div>
+  <button class="scam-close" onclick="document.getElementById('scam-banner').style.display='none'">✕</button>
+</div>
 
 <div class="utility-bar">
   <div class="utility-inner">
@@ -656,17 +690,6 @@
         <div class="bookmark-icon">☆</div>
         <button class="search-btn">Search</button>
       </div>
-    </div>
-  </div>
-</section>
-
-<section class="section" style="padding: 40px 0;">
-  <div class="wrap">
-    <div class="metrics-strip">
-      <div class="story-stat"><span class="story-stat-icon">🌍</span><div><div class="story-stat-num">35+</div><div class="story-stat-label">Countries across IQI's network</div></div></div>
-      <div class="story-stat"><span class="story-stat-icon">🤝</span><div><div class="story-stat-num">70,000+</div><div class="story-stat-label">Real estate negotiators</div></div></div>
-      <div class="story-stat"><span class="story-stat-icon">🏗️</span><div><div class="story-stat-num">400+</div><div class="story-stat-label">Projects in Malaysia</div></div></div>
-      <div class="story-stat"><span class="story-stat-icon">⏱️</span><div><div class="story-stat-num">7+ hrs</div><div class="story-stat-label">Weekly time saved with IQI Atlas</div></div></div>
     </div>
   </div>
 </section>
@@ -1906,6 +1929,40 @@ route();
     loadListingsFromCMS();
   });
 })();
+</script>
+
+<div id="jiqi-widget">
+  <div id="jiqi-bubble" onclick="toggleJiqiPanel()">
+    <span>Got questions? 😊 I'm JIQI, happy to help!</span>
+    <span class="jiqi-close" onclick="event.stopPropagation(); document.getElementById('jiqi-bubble').style.display='none';">✕</span>
+  </div>
+  <div id="jiqi-avatar" onclick="toggleJiqiPanel()">🦁</div>
+</div>
+
+<div id="jiqi-panel">
+  <div id="jiqi-panel-header">
+    <div class="jiqi-mini-avatar">🦁</div>
+    <div>
+      <div class="jiqi-title">JIQI Assistant</div>
+      <div class="jiqi-sub">Online · Usually replies instantly</div>
+    </div>
+  </div>
+  <div id="jiqi-panel-body">
+    Hi, I'm JIQI 👋 I can help you find a property, connect with an agent, or answer questions about IQI Global. What would you like to know?
+  </div>
+  <div id="jiqi-panel-input">
+    <input type="text" placeholder="Type your question...">
+    <button onclick="alert('Thanks! An IQI agent will get back to you shortly.')">Send</button>
+  </div>
+</div>
+
+<script>
+function toggleJiqiPanel(){
+  var panel = document.getElementById('jiqi-panel');
+  panel.classList.toggle('open');
+  var bubble = document.getElementById('jiqi-bubble');
+  if (panel.classList.contains('open')) { bubble.style.display = 'none'; }
+}
 </script>
 
 </body>

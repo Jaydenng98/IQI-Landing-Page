@@ -292,7 +292,9 @@
     .menu-btn{ display:flex; }
     .sidebar{ position:fixed; inset:0 auto 0 0; z-index:45; border-radius:0 40px 40px 0; transform:translateX(-105%); transition:transform .2s; }
     .sidebar.open{ transform:none; }
-    .titlebar{ padding:18px 16px 4px; }
+    .titlebar{ padding:18px 16px 4px; gap:12px; }
+    .title-sub{ order:10; flex-basis:100%; }
+    .titlebar .soft-btn[aria-label="How to secure this admin"]{ display:none; }
     .titlebar h1{ font-size:24px; }
     .content{ padding:16px 16px 120px; }
     .float-bar{ left:12px; right:12px; bottom:12px; }
@@ -345,7 +347,7 @@
     <div class="appbar-icons">
       <button class="bar-icon" aria-label="Unread enquiries" title="Unread enquiries" onclick="state.readTab='Unread'; go('leads');"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button>
       <button class="bar-icon hide-sm" aria-label="How to secure this admin" title="How to secure this admin" onclick="openSecurityModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14"/><path d="M12 17h.01"/></svg></button>
-      <button class="bar-icon hide-sm" aria-label="Site content" title="Site content" onclick="go('content')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
+      <button class="bar-icon hide-sm" aria-label="Settings" title="Settings" onclick="go('settings')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
     </div>
     <div class="me"><span class="name" id="me-email">Admin</span><span class="me-av" id="me-av">A</span></div>
     <button class="bar-icon" aria-label="Log out" title="Log out" onclick="logOut()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h10"/></svg></button>
@@ -373,6 +375,9 @@
         </button>
         <button class="sb-item" data-view="content" onclick="go('content')">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span class="l">Site Content</span>
+        </button>
+        <button class="sb-item" data-view="settings" onclick="go('settings')">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span class="l">Settings</span>
         </button>
       </nav>
 
@@ -430,7 +435,7 @@
               <select id="interest-filter" class="select" aria-label="Filter by interest" onchange="state.interest=this.value; renderLeads();">
                 <option value="">All interests</option>
                 <option>Buying</option><option>Selling</option><option>Renting</option><option>Investing</option>
-                <option>Joining IQI</option><option>Partnership</option><option>Join as Negotiator</option>
+                <option>Joining IQI</option><option>Partnership</option><option>Join as Negotiator</option><option>Newsletter</option><option>Tell me more about this property</option><option>Book a viewing</option><option>Financing / loan advice</option><option>Other question</option>
               </select>
             </div>
             <div class="table-wrap" id="leads-table"><div class="loading">Loading leads…</div></div>
@@ -506,6 +511,40 @@
           </div>
         </div>
       </section>
+
+      <!-- SETTINGS -->
+      <section class="view hidden" id="view-settings">
+        <div class="sec">
+          <div class="sec-head"><div><h2>Account</h2><div class="sub">Change the username and password you use to log in to this admin.</div></div></div>
+          <div class="c-grid">
+            <form class="c-card" id="set-user-form" onsubmit="event.preventDefault(); saveUsername();">
+              <h3>Username</h3>
+              <label>Current username</label>
+              <div style="font-size:15px;font-weight:600;padding:4px 0 2px;" id="set-current-user">—</div>
+              <label for="set-new-user">New username</label>
+              <input type="text" id="set-new-user" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. Jayden155" maxlength="30">
+              <div style="font-size:12.5px;color:var(--ink-soft);">3–30 characters: letters, numbers, dot, dash or underscore. Not case-sensitive when logging in.</div>
+              <div id="set-user-off" class="banner hidden" style="margin-top:6px;">To change the username here, run <b>admin-settings.sql</b> once in the Supabase SQL Editor, then refresh this page.</div>
+              <div class="save-row" style="margin-top:8px;"><button class="btn btn-accent" type="submit" id="set-user-btn">Save username</button></div>
+              <div class="d-status" id="set-user-status" role="status"></div>
+            </form>
+            <form class="c-card" id="set-pass-form" onsubmit="event.preventDefault(); savePassword();">
+              <h3>Password</h3>
+              <input type="text" autocomplete="username" id="set-pass-username" class="hidden" aria-hidden="true" tabindex="-1">
+              <label for="set-pass-current">Current password</label>
+              <input type="password" id="set-pass-current" autocomplete="current-password" style="width:100%;padding:11px 12px;border:1px solid var(--line-2);border-radius:11px;font-size:14px;background:#fff;">
+              <label for="set-pass-new">New password</label>
+              <input type="password" id="set-pass-new" autocomplete="new-password" minlength="6" style="width:100%;padding:11px 12px;border:1px solid var(--line-2);border-radius:11px;font-size:14px;background:#fff;">
+              <label for="set-pass-new2">Repeat new password</label>
+              <input type="password" id="set-pass-new2" autocomplete="new-password" minlength="6" style="width:100%;padding:11px 12px;border:1px solid var(--line-2);border-radius:11px;font-size:14px;background:#fff;">
+              <div style="font-size:12.5px;color:var(--ink-soft);">At least 6 characters. Longer is safer, e.g. a short sentence.</div>
+              <div class="save-row" style="margin-top:8px;"><button class="btn btn-accent" type="submit" id="set-pass-btn">Change password</button></div>
+              <div class="d-status" id="set-pass-status" role="status"></div>
+            </form>
+          </div>
+        </div>
+      </section>
+
     </div>
 
     <div class="float-bar hidden" id="float-bar"></div>
@@ -732,18 +771,40 @@ function showLogin(msg){
   document.getElementById("password-input").value = "";
 }
 
-function usernameToEmail(u){
+// Username -> login email. Uses the admins table in Supabase (admin-settings.sql)
+// so the username can be changed in Settings; falls back to ADMIN_USERS above.
+async function usernameToEmail(u){
   u = u.trim();
   if (u.includes("@")) return u.toLowerCase();
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/login_email`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_username: u })
+    });
+    if (res.ok) {
+      const email = await res.json();
+      if (typeof email === "string" && email.includes("@")) return email.toLowerCase();
+      if (email === null) state.usernamesInDb = true;
+    }
+  } catch (e) { console.warn("username lookup failed, using built-in list", e); }
   return ADMIN_USERS[u.toLowerCase()] || "";
+}
+async function fetchMyUsername(){
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/rpc/my_username`, { method:"POST", headers:{ "Content-Type":"application/json" }, body:"{}" });
+    if (!res.ok) { state.usernamesInDb = false; return null; }
+    state.usernamesInDb = true;
+    return await res.json();
+  } catch (e) { return null; }
 }
 async function doLogin(){
   const username = document.getElementById("login-user").value.trim();
   const password = document.getElementById("password-input").value;
   if (!username || !password) { loginMsg("Please enter your username and password.", ""); return; }
-  const email = usernameToEmail(username);
-  if (!email) { loginMsg("Wrong username or password.", ""); return; }
   loginMsg("", ""); busy("login-btn", true, "Logging in…");
+  const email = await usernameToEmail(username);
+  if (!email) { busy("login-btn", false); loginMsg("Wrong username or password.", ""); return; }
   try {
     const data = await authCall("token?grant_type=password", "POST", { email, password });
     session = null;
@@ -777,6 +838,10 @@ async function checkAdmin(){
 }
 async function afterLogin(){
   const ok = await checkAdmin();
+  if (ok !== false) {
+    const dbName = await fetchMyUsername();
+    if (dbName && session) { session.username = dbName; try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch(e) {} }
+  }
   if (ok === false) {
     clearSession();
     showLogin("This account is not on the admin list. Add it in admin-security.sql.");
@@ -800,7 +865,7 @@ function showDashboard(){
 }
 
 /* ---------------- navigation ---------------- */
-const VIEW_TITLES = { today:"Today", leads:"Enquiries", applicants:"Applicants", listings:"Listings", content:"Site content" };
+const VIEW_TITLES = { today:"Today", leads:"Enquiries", applicants:"Applicants", listings:"Listings", content:"Site content", settings:"Settings" };
 function go(view){
   state.view = view;
   document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
@@ -811,6 +876,7 @@ function go(view){
   toggleSidebar(false);
   if (view !== "leads") closeDrawer();
   if (view === "content" && !contentLoaded) { contentLoaded = true; loadSiteContentIntoForm(); }
+  if (view === "settings") renderSettings();
   renderAll();
 }
 function toggleSidebar(open){
@@ -912,7 +978,7 @@ function renderChrome(){
   document.getElementById("month-sub").textContent = state.loaded ? (unread ? `${unread} unread` : "all caught up") : "Loading…";
 
   const chip = document.getElementById("crumb-chip");
-  const chipText = { today: unread ? `${unread} unread` : "", leads: String(all.length), applicants: String(all.filter(isApplicant).length), listings: String(state.listings.length), content: "" }[state.view];
+  const chipText = { settings: "", today: unread ? `${unread} unread` : "", leads: String(all.length), applicants: String(all.filter(isApplicant).length), listings: String(state.listings.length), content: "" }[state.view];
   chip.textContent = chipText; chip.classList.toggle("hidden", !chipText);
   renderFloatBar();
 }
@@ -1316,6 +1382,72 @@ async function saveSiteContent(){
     console.error(err);
     s.textContent = 'Save failed. Check your Supabase setup (is the "site_content" table created?).'; s.className = "d-status err";
   }
+}
+
+/* ---------------- SETTINGS: username + password ---------------- */
+function currentUsername(){ return session?.username || (session?.email || "").split("@")[0]; }
+function setStatus(id, msg, ok){ const el = document.getElementById(id); el.textContent = msg; el.className = "d-status " + (ok === true ? "ok" : ok === false ? "err" : ""); }
+function renderSettings(){
+  document.getElementById("set-current-user").textContent = currentUsername() || "—";
+  document.getElementById("set-pass-username").value = currentUsername();
+  const off = state.usernamesInDb === false;
+  document.getElementById("set-user-off").classList.toggle("hidden", !off);
+  document.getElementById("set-new-user").disabled = off;
+  document.getElementById("set-user-btn").disabled = off;
+}
+async function saveUsername(){
+  const nu = document.getElementById("set-new-user").value.trim();
+  if (!/^[A-Za-z0-9_.-]{3,30}$/.test(nu)) return setStatus("set-user-status", "Use 3–30 letters, numbers, dot, dash or underscore (no spaces).", false);
+  if (nu.toLowerCase() === (currentUsername() || "").toLowerCase() && nu === currentUsername()) return setStatus("set-user-status", "That's already your username.", false);
+  busy("set-user-btn", true, "Saving…"); setStatus("set-user-status", "");
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/rpc/set_my_username`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ p_username: nu }) });
+    if (!res.ok) {
+      let msg = ""; try { const j = await res.json(); msg = j.message || ""; } catch(e) {}
+      if (/taken/i.test(msg)) throw new Error("That username is already used by another admin.");
+      if (res.status === 404) { state.usernamesInDb = false; renderSettings(); throw new Error("Run admin-settings.sql in Supabase first."); }
+      throw new Error(msg || "Could not save (" + res.status + ").");
+    }
+    session.username = nu; try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch(e) {}
+    document.getElementById("me-email").textContent = nu;
+    document.getElementById("me-av").textContent = nu[0].toUpperCase();
+    document.getElementById("set-new-user").value = "";
+    renderSettings();
+    setStatus("set-user-status", `Saved. Next time, log in with "${nu}".`, true);
+  } catch (err) {
+    console.error(err); setStatus("set-user-status", err.message, false);
+  }
+  busy("set-user-btn", false);
+}
+async function savePassword(){
+  const cur = document.getElementById("set-pass-current").value;
+  const p1 = document.getElementById("set-pass-new").value;
+  const p2 = document.getElementById("set-pass-new2").value;
+  if (!cur) return setStatus("set-pass-status", "Please enter your current password.", false);
+  if (p1.length < 6) return setStatus("set-pass-status", "The new password needs at least 6 characters.", false);
+  if (p1 !== p2) return setStatus("set-pass-status", "The two new passwords don't match.", false);
+  if (p1 === cur) return setStatus("set-pass-status", "The new password is the same as the current one.", false);
+  busy("set-pass-btn", true, "Saving…"); setStatus("set-pass-status", "");
+  try {
+    // 1) prove it's really you: log in again with the current password
+    let fresh;
+    try { fresh = await authCall("token?grant_type=password", "POST", { email: session.email, password: cur }); }
+    catch (e) { throw new Error(/invalid/i.test(e.message) ? "The current password is wrong." : "Could not check your current password: " + e.message); }
+    saveSession(fresh, session.email);
+    // 2) set the new password
+    try { await authCall("user", "PUT", { password: p1 }, session.access_token); }
+    catch (e) {
+      if (/weak|pwned|leaked|known/i.test(e.message)) throw new Error("Supabase rejected this password as too easy to guess. Please choose a stronger one.");
+      if (/reauth/i.test(e.message)) throw new Error("Supabase requires email confirmation for password changes. Turn off \"Secure password change\" in Supabase → Authentication → Providers → Email, or change it in Supabase → Authentication → Users.");
+      throw new Error("Could not change the password: " + e.message);
+    }
+    document.getElementById("set-pass-form").reset();
+    renderSettings();
+    setStatus("set-pass-status", "Password changed. Use the new password next time you log in.", true);
+  } catch (err) {
+    console.error(err); setStatus("set-pass-status", err.message, false);
+  }
+  busy("set-pass-btn", false);
 }
 
 /* ---------------- security modal ---------------- */

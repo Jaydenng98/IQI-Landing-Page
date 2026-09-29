@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IQI MAD Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#1F5FC7;            /* main brand blue (white text passes contrast) */
+    --blue-deep:#174CA3;
+    --blue-soft:#EEF2F8;       /* light folder cards */
+    --blue-tint:#E6EEFB;       /* selected row */
+    --blue-line:#D3DCEA;
+    --page:#2B66CC;            /* outer background */
+    --accent:var(--blue);
+    --orange:var(--blue);      /* kept for older inline references */
+    --dark:var(--blue);        /* "strong" surfaces are blue in this theme */
+    --accent-tint:var(--blue-tint);
+    --accent-tint-2:#DCE7FA;
+    --ink:#1B2433;
+    --ink-2:#39445A;
+    --ink-soft:#5E6B80;
+    --line:#E3E8F0;
+    --line-2:#D5DCE7;
+    --panel:var(--blue-soft);
+    --red:#B3261E;
+    --green:#1B7A43;
+    --sans:'Inter',-apple-system,'Segoe UI',sans-serif;
+    --heading:'Poppins','Inter',sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ background:var(--page); color:var(--ink); font-family:var(--sans); font-size:14px; -webkit-font-smoothing:antialiased; }
+  button,input,select,textarea{ font-family:inherit; font-size:inherit; color:inherit; }
+  button{ cursor:pointer; }
+  a{ color:inherit; text-decoration:none; }
+  :focus-visible{ outline:2px solid #FFB547; outline-offset:2px; }
+  svg{ flex-shrink:0; }
+  .hidden{ display:none !important; }
+
+  /* ---------- LOGIN ---------- */
+  #login-gate{ min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--page); padding:24px; }
+  .login-card{ background:#fff; border-radius:28px; padding:36px 32px; width:100%; max-width:360px; display:flex; flex-direction:column; gap:14px; box-shadow:0 30px 60px -30px rgba(10,30,80,.5); }
+  .login-mark{ width:48px; height:48px; border-radius:13px; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--heading); font-weight:700; font-size:14px; }
+  .login-card h1{ font-family:var(--heading); font-size:22px; color:var(--blue); }
+  .login-card p{ color:var(--ink-soft); font-size:13.5px; margin-top:-8px; }
+  .login-card input{ height:46px; padding:0 14px; border:1px solid var(--line-2); border-radius:12px; font-size:14.5px; }
+  .login-error{ color:var(--red); font-size:13px; display:none; line-height:1.45; }
+  .login-ok{ color:var(--green); font-size:13px; display:none; line-height:1.45; }
+  .login-card label{ font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:-8px; }
+  .login-panel{ display:flex; flex-direction:column; gap:14px; }
+  .me .name{ max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* ---------- APP FRAME ---------- */
+  #dashboard{ display:none; height:100vh; padding:24px; }
+  .app{ height:100%; background:#fff; border-radius:40px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 40px 80px -40px rgba(10,30,80,.55); }
+
+  .appbar{ display:flex; align-items:center; gap:24px; height:84px; padding:0 32px; flex-shrink:0; }
+  .brand{ display:flex; align-items:center; gap:10px; width:220px; flex-shrink:0; }
+  .brand-mark{ width:34px; height:34px; border-radius:10px; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--heading); font-weight:700; font-size:11.5px; }
+  .brand-name{ font-family:var(--heading); font-weight:600; font-size:20px; color:var(--blue); white-space:nowrap; }
+  .appbar-search{ display:flex; align-items:center; gap:10px; height:44px; width:min(360px,100%); padding:0 16px; border-radius:99px; background:#F0F2F5; }
+  .appbar-search input{ flex-grow:1; min-width:0; border:none; outline:none; background:transparent; font-size:13.5px; }
+  .appbar-search input::placeholder{ color:#8A94A6; }
+  .kbd{ font-size:11.5px; font-weight:600; color:var(--ink-soft); padding:3px 7px; border-radius:7px; background:#fff; white-space:nowrap; }
+  .appbar-spacer{ flex-grow:1; }
+  .appbar-icons{ display:flex; align-items:center; gap:6px; }
+  .bar-icon{ width:44px; height:44px; border-radius:99px; border:none; background:transparent; color:var(--ink); display:flex; align-items:center; justify-content:center; }
+  .bar-icon:hover{ background:#F0F2F5; }
+  .me{ display:flex; align-items:center; gap:10px; margin-left:12px; }
+  .me span.name{ font-size:13.5px; font-weight:500; }
+  .me .me-av{ width:38px; height:38px; border-radius:99px; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; }
+  .menu-btn{ display:none; }
+
+  .app-body{ flex-grow:1; min-height:0; display:flex; }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{ width:260px; flex-shrink:0; background:var(--blue); color:#fff; border-radius:0 72px 0 0; display:flex; flex-direction:column; padding:36px 22px 26px; overflow-y:auto; }
+  .sb-upload{ height:46px; border-radius:99px; border:none; background:#fff; color:var(--blue); font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px; margin:0 4px 30px; box-shadow:0 10px 24px -14px rgba(0,0,0,.4); }
+  .sb-upload:hover{ background:#F2F6FD; }
+  .sb-nav{ display:flex; flex-direction:column; gap:4px; }
+  .sb-item{ display:flex; align-items:center; gap:14px; height:44px; padding:0 12px; border-radius:12px; border:none; background:transparent; color:#fff; text-align:left; font-size:14px; width:100%; opacity:.88; }
+  .sb-item:hover{ background:rgba(255,255,255,.1); opacity:1; }
+  .sb-item.active{ background:rgba(255,255,255,.18); opacity:1; font-weight:600; }
+  .sb-item span.l{ flex-grow:1; }
+  .sb-count{ font-size:11.5px; font-weight:700; padding:2px 9px; border-radius:99px; background:rgba(255,255,255,.2); color:#fff; }
+  .sb-count.hot{ background:#fff; color:var(--blue); }
+  .sb-spacer{ flex-grow:1; min-height:30px; }
+  .sb-stats{ display:flex; flex-direction:column; gap:14px; padding:0 8px; }
+  .sb-stats h3{ font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; opacity:.9; }
+  .sb-stat{ display:flex; flex-direction:column; gap:7px; }
+  .sb-stat-top{ display:flex; align-items:center; gap:8px; font-size:13px; }
+  .sb-bar{ height:4px; border-radius:99px; background:rgba(255,255,255,.28); overflow:hidden; }
+  .sb-bar i{ display:block; height:100%; background:#fff; border-radius:99px; transition:width .4s; }
+  .sb-stat small{ font-size:12px; opacity:.85; }
+  .sb-secure{ margin-top:18px; padding:0 8px; background:none; border:none; color:#fff; font-weight:600; font-size:13px; display:flex; align-items:center; gap:6px; text-align:left; }
+  .sb-secure:hover{ text-decoration:underline; }
+
+  /* ---------- MAIN ---------- */
+  .main{ flex-grow:1; min-width:0; display:flex; flex-direction:column; position:relative; }
+  .titlebar{ display:flex; align-items:center; gap:18px; padding:34px 40px 8px; flex-wrap:wrap; }
+  .titlebar h1{ font-family:var(--heading); font-weight:600; font-size:28px; color:var(--blue); }
+  .title-add{ width:44px; height:44px; border-radius:12px; border:none; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; }
+  .title-add:hover{ background:var(--blue-deep); }
+  .title-sub{ font-size:13.5px; color:var(--ink-soft); }
+  .title-sub b{ color:var(--ink); }
+  .chip{ font-size:12.5px; font-weight:600; padding:4px 11px; border-radius:99px; background:var(--blue-tint); color:var(--blue); }
+  .title-spacer{ flex-grow:1; }
+  .soft-btn{ width:44px; height:44px; border-radius:12px; border:none; background:var(--blue-soft); color:var(--ink-soft); display:flex; align-items:center; justify-content:center; }
+  .soft-btn:hover{ color:var(--blue); }
+
+  .content{ flex-grow:1; overflow-y:auto; padding:22px 40px 110px; }
+  .view{ display:flex; flex-direction:column; gap:30px; }
+  .sec{ display:flex; flex-direction:column; gap:16px; }
+  .sec-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .sec-head h2{ font-family:var(--sans); font-weight:600; font-size:16px; letter-spacing:.03em; text-transform:uppercase; color:var(--ink); }
+  .sec-head .sub{ font-size:13.5px; color:var(--ink-soft); margin-top:4px; }
+  .link-btn{ background:none; border:none; color:var(--blue); font-weight:600; font-size:13.5px; }
+
+  .btn{ height:42px; padding:0 16px; border-radius:11px; border:1px solid var(--line-2); background:#fff; font-weight:600; font-size:13.5px; color:var(--ink); display:inline-flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; }
+  .btn:hover{ border-color:var(--blue); color:var(--blue); }
+  .btn-dark, .btn-accent{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .btn-dark:hover, .btn-accent:hover{ background:var(--blue-deep); border-color:var(--blue-deep); color:#fff; }
+  .btn-danger{ color:var(--red); }
+  .btn-danger:hover{ border-color:var(--red); color:var(--red); }
+  .btn[disabled]{ opacity:.55; cursor:not-allowed; }
+
+  .banner{ border-radius:14px; background:#FFF7E8; border:1px solid #F3DDB0; color:#6B4A06; padding:14px 16px; font-size:13.5px; line-height:1.5; }
+  .banner.err{ background:#FDECEA; border-color:#F5C6C2; color:#7A1A14; }
+
+  /* folder-style cards (KPIs) */
+  .kpis{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; padding-top:14px; }
+  .kpi{ position:relative; background:var(--blue-soft); border-radius:0 18px 18px 18px; padding:20px 22px; display:flex; flex-direction:column; gap:6px; min-height:128px; }
+  .kpi::before{ content:""; position:absolute; top:-14px; left:0; width:52%; height:28px; background:inherit; border-radius:16px 16px 0 0; clip-path:polygon(0 0, 82% 0, 100% 100%, 0 100%); }
+  .kpi.dark{ background:var(--blue); color:#fff; box-shadow:0 18px 30px -22px rgba(31,95,199,.9); }
+  .kpi .k-label{ position:relative; font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-2); }
+  .kpi.dark .k-label{ color:#fff; }
+  .kpi .k-num{ font-family:var(--heading); font-weight:600; font-size:32px; line-height:1.1; margin-top:auto; }
+  .kpi .k-sub{ font-size:12.5px; color:var(--blue); }
+  .kpi.dark .k-sub{ color:#DCE7FA !important; font-weight:500; }
+
+  /* enquiry cards */
+  .att-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+  .att{ background:var(--blue-soft); border-radius:18px; padding:18px; display:flex; flex-direction:column; gap:12px; border-left:3px solid var(--blue); }
+  .att-frame, .att-inner{ display:contents; }
+  .att-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .att-msg{ font-size:13px; line-height:1.5; color:var(--blue); height:39px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .att-foot{ display:flex; align-items:flex-end; justify-content:space-between; gap:8px; }
+  .att-foot strong{ display:block; font-size:14.5px; }
+  .att-foot span{ font-size:12.5px; }
+  .pill-dark{ height:34px; padding:0 14px; border-radius:99px; background:var(--blue); color:#fff; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; gap:6px; border:none; }
+  .ghost-round{ width:36px; height:36px; border-radius:99px; border:none; background:transparent; color:var(--ink-2); display:flex; align-items:center; justify-content:center; }
+  .ghost-round:hover{ background:#fff; }
+  .empty{ border:1.5px dashed var(--line-2); border-radius:16px; padding:28px; text-align:center; color:var(--ink-soft); font-size:14px; line-height:1.5; }
+
+  /* avatar */
+  .av{ width:30px; height:30px; border-radius:99px; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+  .av.lg{ width:38px; height:38px; font-size:13px; }
+  .av.xl{ width:46px; height:46px; font-size:15px; }
+
+  /* segmented */
+  .seg{ display:inline-flex; gap:4px; padding:4px; background:var(--blue-soft); border-radius:12px; flex-wrap:wrap; }
+  .seg button{ height:36px; padding:0 14px; border-radius:9px; border:none; background:transparent; color:var(--ink-2); font-size:13.5px; display:flex; align-items:center; gap:8px; }
+  .seg button.on{ background:#fff; color:var(--blue); font-weight:600; box-shadow:0 2px 8px -4px rgba(10,30,80,.25); }
+  .seg .tick{ width:18px; height:18px; border-radius:99px; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; }
+  .seg .n{ color:var(--ink-soft); font-weight:500; }
+
+  /* toolbar */
+  .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .search{ flex-grow:1; min-width:220px; display:flex; align-items:center; gap:10px; height:44px; padding:0 16px; background:#F0F2F5; border-radius:99px; }
+  .search input{ border:none; outline:none; flex-grow:1; min-width:0; background:transparent; }
+  .select{ height:44px; padding:0 14px; border:1px solid var(--line-2); border-radius:99px; background:#fff; }
+
+  /* table (file-list style) */
+  .table-wrap{ overflow-x:auto; }
+  .tbl{ min-width:720px; }
+  .t-head, .t-row{ display:grid; align-items:center; gap:12px; padding:0 10px; }
+  .t-head{ height:38px; font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#8A94A6; }
+  .t-row{ min-height:56px; padding-top:8px; padding-bottom:8px; border-bottom:1.5px solid var(--blue-line); background:#fff; width:100%; border-left:none; border-right:none; border-top:none; text-align:left; color:var(--ink); }
+  .t-row:hover{ background:#F7F9FC; }
+  .t-row.sel{ background:var(--blue-tint); }
+  .cols-apps{ grid-template-columns:minmax(0,1.6fr) minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr) 90px minmax(0,.9fr) 48px; }
+  .lead-cell{ display:flex; align-items:center; gap:12px; min-width:0; }
+  .lead-cell .txt{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .lead-cell strong{ font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lead-cell span{ font-size:12.5px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .house{ width:38px; height:38px; border-radius:11px; background:var(--blue-soft); color:var(--blue); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .muted{ color:var(--ink-soft); }
+  .late{ color:var(--red); font-weight:600; }
+  .t-link{ color:var(--blue); font-weight:500; }
+  .tag{ font-size:12px; font-weight:600; padding:3px 10px; border-radius:99px; background:var(--blue-soft); color:var(--blue); display:inline-block; }
+  .unread-dot{ display:inline-block; width:9px; height:9px; border-radius:99px; background:var(--blue); flex-shrink:0; box-shadow:0 0 0 3px var(--blue-tint); }
+  .t-row.unread strong{ font-weight:700; }
+
+  /* floating bar */
+  .float-bar{ position:absolute; left:40px; right:40px; bottom:22px; min-height:62px; border-radius:18px; background:#fff; box-shadow:0 16px 40px -14px rgba(10,30,80,.35); border:1px solid var(--line); display:flex; align-items:center; gap:14px; padding:10px 12px 10px 16px; flex-wrap:wrap; z-index:5; }
+  .float-bar .fb-icon{ width:34px; height:34px; border-radius:10px; background:var(--blue-tint); color:var(--blue); display:flex; align-items:center; justify-content:center; }
+  .float-bar strong{ font-size:14px; }
+  .float-bar .fb-meta{ font-size:13.5px; color:var(--ink-2); }
+  .float-bar .grow{ flex-grow:1; }
+
+  /* enquiries layout + drawer */
+  .leads-layout{ display:flex; gap:24px; align-items:flex-start; }
+  .leads-list{ flex-grow:1; min-width:0; display:flex; flex-direction:column; gap:16px; }
+  .drawer{ width:360px; flex-shrink:0; border-radius:24px; background:#fff; border:1px solid var(--line); box-shadow:0 20px 44px -24px rgba(10,30,80,.35); padding:20px; display:flex; flex-direction:column; gap:16px; position:sticky; top:0; }
+  .drawer-empty{ color:var(--ink-soft); font-size:14px; line-height:1.5; text-align:center; padding:30px 10px; }
+  .d-hero{ background:var(--blue); border-radius:18px; padding:18px; color:#fff; display:flex; flex-direction:column; gap:14px; }
+  .d-hero-top{ display:flex; align-items:center; gap:12px; }
+  .d-hero-top .grow{ flex-grow:1; min-width:0; }
+  .d-hero strong{ font-family:var(--heading); font-weight:600; font-size:17px; display:block; }
+  .d-hero span{ font-size:12.5px; color:#DCE7FA; }
+  .d-actions{ display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:8px; }
+  .d-actions a{ height:42px; border-radius:11px; background:rgba(255,255,255,.16); color:#fff; font-size:13.5px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .d-actions a:hover{ background:rgba(255,255,255,.26); }
+  .d-actions a.wa{ background:#fff; color:var(--blue); }
+  .d-actions a.off{ opacity:.4; pointer-events:none; }
+  .circle-btn{ width:36px; height:36px; border-radius:99px; border:none; background:rgba(255,255,255,.18); color:#fff; display:flex; align-items:center; justify-content:center; }
+  .d-close{ display:none; }
+  .d-info{ display:flex; flex-direction:column; gap:9px; font-size:13.5px; }
+  .d-info div{ display:flex; justify-content:space-between; gap:12px; }
+  .d-info span:first-child{ color:var(--ink-soft); flex-shrink:0; }
+  .d-info span:last-child{ font-weight:500; text-align:right; word-break:break-word; }
+  .d-msg{ background:var(--blue-soft); border-radius:14px; padding:14px; font-size:13.5px; line-height:1.55; white-space:pre-wrap; word-break:break-word; }
+  .d-label{ font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:#8A94A6; }
+  .d-status{ font-size:12.5px; min-height:16px; }
+  .d-status.ok{ color:var(--green); }
+  .d-status.err{ color:var(--red); }
+
+  /* listings */
+  .list-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:18px; }
+  .l-card{ background:var(--blue-soft); border-radius:18px; padding:10px; display:flex; flex-direction:column; gap:10px; }
+  .l-thumb{ height:150px; border-radius:12px; background:#DCE3EE center/cover no-repeat; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:13px; }
+  .l-body{ padding:2px 6px 4px; display:flex; flex-direction:column; gap:3px; }
+  .l-body strong{ font-size:15px; font-weight:600; }
+  .l-body .price{ font-family:var(--heading); font-weight:600; color:var(--blue); }
+  .l-body span{ font-size:12.5px; color:var(--ink-soft); }
+  .l-actions{ display:flex; gap:8px; padding:0 6px 6px; }
+
+  /* content */
+  .c-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+  .c-card{ background:var(--blue-soft); border-radius:18px; padding:20px; display:flex; flex-direction:column; gap:8px; }
+  .c-card h3{ font-size:13px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; margin-bottom:4px; }
+  .c-card label, .modal label{ font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-top:6px; }
+  .c-card input[type=text], .c-card textarea, .modal input[type=text], .modal input[type=number]{ width:100%; padding:11px 12px; border:1px solid var(--line-2); border-radius:11px; font-size:14px; background:#fff; }
+  .c-card textarea{ resize:vertical; line-height:1.5; }
+  .img-preview{ margin-top:8px; max-width:280px; }
+  .img-preview img{ width:100%; border-radius:10px; border:1px solid var(--line); display:block; }
+  .save-row{ display:flex; align-items:center; gap:12px; }
+
+  /* photo drop zone */
+  .drop{ border:1.5px dashed #B7C6DE; border-radius:14px; padding:20px; text-align:center; color:var(--ink-soft); font-size:13.5px; line-height:1.5; background:#F7F9FC; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .drop.over{ border-color:var(--blue); background:var(--blue-tint); color:var(--ink); }
+  .drop strong{ color:var(--blue); font-size:14px; }
+  .drop img{ max-width:100%; max-height:220px; border-radius:10px; border:1px solid var(--line); }
+
+  /* modal */
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(12,28,64,.5); display:none; align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .modal{ background:#fff; border-radius:24px; padding:24px; width:100%; max-width:640px; max-height:90vh; overflow-y:auto; }
+  .modal h3{ font-family:var(--heading); font-weight:600; font-size:20px; color:var(--blue); margin-bottom:14px; }
+  .modal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; }
+  .modal-grid > div{ display:flex; flex-direction:column; gap:5px; }
+  .span2{ grid-column:1 / -1; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+  .modal p{ font-size:14px; line-height:1.6; color:var(--ink-2); margin-bottom:10px; }
+  .modal ol{ padding-left:20px; font-size:14px; line-height:1.7; color:var(--ink-2); }
+
+  .loading{ padding:40px; text-align:center; color:var(--ink-soft); }
+  .scrim{ display:none; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:1280px){ .drawer{ width:330px; } }
+  @media (max-width:1100px){
+    .kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:30px; }
+    .att-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .leads-layout{ display:block; }
+    .drawer{ position:fixed; inset:0 0 0 auto; width:min(420px,100%); border-radius:24px 0 0 24px; z-index:40; overflow-y:auto; display:none; }
+    .drawer.open{ display:flex; }
+    .d-close{ display:flex; }
+    .scrim.on{ display:block; position:fixed; inset:0; background:rgba(12,28,64,.45); z-index:39; }
+    .brand{ width:auto; }
+  }
+  @media (max-width:900px){
+    #dashboard{ padding:0; }
+    .app{ border-radius:0; }
+    .appbar{ height:68px; padding:0 14px; gap:10px; }
+    .brand-name, .me span.name, .appbar-search, .appbar-icons .hide-sm{ display:none; }
+    .menu-btn{ display:flex; }
+    .sidebar{ position:fixed; inset:0 auto 0 0; z-index:45; border-radius:0 40px 40px 0; transform:translateX(-105%); transition:transform .2s; }
+    .sidebar.open{ transform:none; }
+    .titlebar{ padding:18px 16px 4px; }
+    .titlebar h1{ font-size:24px; }
+    .content{ padding:16px 16px 120px; }
+    .float-bar{ left:12px; right:12px; bottom:12px; }
+    .c-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width:600px){
+    .kpis, .att-grid{ grid-template-columns:1fr; }
+    .modal-grid{ grid-template-columns:1fr; }
+    .kpi .k-num{ font-size:28px; }
+  }
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="login-gate">
+  <div class="login-card">
+    <div class="login-mark">IQI</div>
+
+    <form class="login-panel" id="panel-login" onsubmit="event.preventDefault(); doLogin();">
+      <h1>MAD Realty Admin</h1>
+      <p>Log in with your admin username.</p>
+      <label for="login-user">Username</label>
+      <input id="login-user" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Username" required>
+      <label for="password-input">Password</label>
+      <input id="password-input" type="password" autocomplete="current-password" placeholder="Password" required>
+      <button class="btn btn-accent" id="login-btn" type="submit" style="height:46px;">Log in</button>
+    </form>
+
+    <div class="login-error" id="login-error" role="alert"></div>
+    <div class="login-ok" id="login-ok" role="status"></div>
+  </div>
+</div>
+
+<!-- ================= DASHBOARD ================= -->
+<div id="dashboard">
+<div class="app">
+
+  <!-- top bar -->
+  <header class="appbar">
+    <button class="bar-icon menu-btn" aria-label="Open menu" onclick="toggleSidebar(true)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div class="brand"><span class="brand-mark">IQI</span><span class="brand-name">MAD Realty</span></div>
+    <label class="appbar-search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A94A6" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="global-search" type="text" placeholder="Search enquiries" aria-label="Search enquiries" oninput="globalSearch(this.value)">
+      <span class="kbd">⌘ K</span>
+    </label>
+    <div class="appbar-spacer"></div>
+    <div class="appbar-icons">
+      <button class="bar-icon" aria-label="Unread enquiries" title="Unread enquiries" onclick="state.readTab='Unread'; go('leads');"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button>
+      <button class="bar-icon hide-sm" aria-label="How to secure this admin" title="How to secure this admin" onclick="openSecurityModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14"/><path d="M12 17h.01"/></svg></button>
+      <button class="bar-icon hide-sm" aria-label="Site content" title="Site content" onclick="go('content')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
+    </div>
+    <div class="me"><span class="name" id="me-email">Admin</span><span class="me-av" id="me-av">A</span></div>
+    <button class="bar-icon" aria-label="Log out" title="Log out" onclick="logOut()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h10"/></svg></button>
+  </header>
+
+  <div class="app-body">
+    <!-- blue sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="Admin navigation">
+      <button class="sb-upload" onclick="openListingModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>
+        Upload new listing
+      </button>
+      <nav class="sb-nav">
+        <button class="sb-item" data-view="today" onclick="go('today')">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="l">Today</span>
+        </button>
+        <button class="sb-item" data-view="leads" onclick="go('leads')">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l2.5-8h11l2.5 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/></svg><span class="l">Enquiries</span><span class="sb-count" id="sb-leads-count">0</span>
+        </button>
+        <button class="sb-item" data-view="listings" onclick="go('listings')">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="8.5" r="1.5"/></svg><span class="l">Listings</span><span class="sb-count" id="sb-list-count">0</span>
+        </button>
+        <button class="sb-item" data-view="applicants" onclick="go('applicants')">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg><span class="l">Applicants</span><span class="sb-count" id="sb-app-count">0</span>
+        </button>
+        <button class="sb-item" data-view="content" onclick="go('content')">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span class="l">Site Content</span>
+        </button>
+      </nav>
+
+      <div class="sb-spacer"></div>
+      <div class="sb-stats">
+        <h3>Overview</h3>
+        <div class="sb-stat">
+          <div class="sb-stat-top"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Enquiries read</div>
+          <div class="sb-bar"><i id="stat-read-bar" style="width:0%"></i></div>
+          <small id="stat-read-text">—</small>
+        </div>
+        <div class="sb-stat">
+          <div class="sb-stat-top"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>Listings with photos</div>
+          <div class="sb-bar"><i id="stat-photo-bar" style="width:0%"></i></div>
+          <small id="stat-photo-text">—</small>
+        </div>
+      </div>
+      <button class="sb-secure hidden" id="sb-secure" onclick="openSecurityModal()">Secure your admin
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></button>
+    </aside>
+    <div class="scrim" id="sb-scrim" onclick="toggleSidebar(false)"></div>
+
+    <main class="main">
+      <div class="titlebar">
+        <h1 id="crumb-cur">Today</h1>
+        <button class="title-add" aria-label="Upload new listing" title="Upload new listing" onclick="openListingModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/></svg></button>
+        <span class="chip" id="crumb-chip"></span>
+        <span class="title-sub"><b id="month-num">0</b> enquiries this month, <span id="month-sub">loading…</span></span>
+        <span class="title-spacer"></span>
+        <button class="soft-btn" aria-label="Refresh data" title="Refresh data" onclick="refreshAll()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+        <button class="soft-btn" aria-label="How to secure this admin" title="How to secure this admin" onclick="openSecurityModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button>
+      </div>
+
+    <div class="content" id="content">
+      <div id="config-warning" class="banner err hidden" style="margin-bottom:20px;"></div>
+      <div id="security-banner" class="banner hidden" style="margin-bottom:20px;">Your enquiries can still be read without logging in. Run <b>admin-security.sql</b> in Supabase to lock them to your admin account. <button class="link-btn" onclick="openSecurityModal()">Show me how</button></div>
+
+      <!-- TODAY -->
+      <section class="view" id="view-today"></section>
+
+      <!-- LEADS -->
+      <section class="view hidden" id="view-leads">
+        <div class="leads-layout">
+          <div class="leads-list">
+            <div class="sec-head">
+              <h2>Enquiries</h2>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn" onclick="markAllRead()">Mark all as read</button><button class="btn" onclick="exportCSV()">Export CSV</button></div>
+            </div>
+            <div class="seg" id="read-tabs"></div>
+            <div class="toolbar">
+              <label class="search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6368" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+                <input id="search-input" type="text" placeholder="Search name, phone or email" aria-label="Search leads" oninput="state.q=this.value; renderLeads();">
+              </label>
+              <select id="interest-filter" class="select" aria-label="Filter by interest" onchange="state.interest=this.value; renderLeads();">
+                <option value="">All interests</option>
+                <option>Buying</option><option>Selling</option><option>Renting</option><option>Investing</option>
+                <option>Joining IQI</option><option>Partnership</option><option>Join as Negotiator</option>
+              </select>
+            </div>
+            <div class="table-wrap" id="leads-table"><div class="loading">Loading leads…</div></div>
+          </div>
+          <aside class="drawer" id="drawer" aria-label="Enquiry details"></aside>
+        </div>
+      </section>
+
+      <!-- APPLICANTS -->
+      <section class="view hidden" id="view-applicants">
+        <div class="kpis" id="app-kpis"></div>
+        <div class="sec">
+          <div class="sec-head">
+            <h2>Join / Register applicants</h2>
+            <button class="btn" onclick="exportApplicantsCSV()">Export CSV</button>
+          </div>
+          <div class="toolbar">
+            <label class="search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6368" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+              <input id="app-search-input" type="text" placeholder="Search name, phone or email" aria-label="Search applicants" oninput="renderApplicants()">
+            </label>
+          </div>
+          <div class="table-wrap" id="applicants-table"></div>
+        </div>
+      </section>
+
+      <!-- LISTINGS -->
+      <section class="view hidden" id="view-listings">
+        <div class="sec">
+          <div class="sec-head">
+            <div><h2>Listings</h2><div class="sub">Changes here show on the landing page automatically.</div></div>
+            <button class="btn btn-accent" onclick="openListingModal()">+ Add listing</button>
+          </div>
+          <div id="listings-container"><div class="loading">Loading listings…</div></div>
+        </div>
+      </section>
+
+      <!-- SITE CONTENT -->
+      <section class="view hidden" id="view-content">
+        <div class="sec">
+          <div class="sec-head"><div><h2>Site content</h2><div class="sub">Edit text and images here and the landing page updates automatically.</div></div></div>
+          <div class="c-grid">
+            <div class="c-card">
+              <h3>About text</h3>
+              <label for="cms-about-title">About title</label>
+              <input type="text" id="cms-about-title" placeholder="Award-winning PropTech Agency">
+              <label for="cms-about-p1">Paragraph 1</label>
+              <textarea id="cms-about-p1" rows="2" placeholder="IQI goes beyond conventional boundaries."></textarea>
+              <label for="cms-about-p2">Paragraph 2</label>
+              <textarea id="cms-about-p2" rows="4" placeholder="With offices in 30+ countries..."></textarea>
+            </div>
+            <div class="c-card">
+              <h3>Contact info</h3>
+              <label for="cms-contact-phone">Phone / WhatsApp</label>
+              <input type="text" id="cms-contact-phone" placeholder="+60 1X-XXX XXXX">
+              <label for="cms-contact-email">Email</label>
+              <input type="text" id="cms-contact-email" placeholder="iqi@iqimadrealty.co">
+            </div>
+            <div class="c-card">
+              <h3>Hero image</h3>
+              <input type="file" id="cms-hero-image" accept="image/*" aria-label="Hero image">
+              <div id="cms-hero-preview" class="img-preview"></div>
+            </div>
+            <div class="c-card">
+              <h3>Our story photo</h3>
+              <input type="file" id="cms-story-image" accept="image/*" aria-label="Our story photo">
+              <div id="cms-story-preview" class="img-preview"></div>
+            </div>
+          </div>
+          <div class="save-row">
+            <button class="btn btn-accent" onclick="saveSiteContent()">Save changes</button>
+            <span id="content-save-status" class="d-status"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="float-bar hidden" id="float-bar"></div>
+    </main>
+  </div>
+</div>
+</div>
+<div class="scrim" id="drawer-scrim" onclick="closeDrawer()"></div>
+
+<!-- Listing modal -->
+<div id="listing-modal-backdrop" class="modal-backdrop" onclick="if(event.target===this) closeListingModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="listing-modal-title">
+    <h3 id="listing-modal-title">Add listing</h3>
+    <input type="hidden" id="lm-id-original">
+    <div class="modal-grid">
+      <div><label for="lm-id">ID (letters/numbers, unique, e.g. erica)</label><input type="text" id="lm-id" placeholder="erica"></div>
+      <div><label for="lm-name">Name</label><input type="text" id="lm-name" placeholder="Erica Residence - Bandar Bukit Puchong"></div>
+      <div class="span2"><label for="lm-address">Address</label><input type="text" id="lm-address" placeholder="Jalan BP 11/5, Bandar Bukit Puchong 2, 47120 Puchong, Selangor"></div>
+      <div><label for="lm-price">Price</label><input type="text" id="lm-price" placeholder="RM 2,142,000"></div>
+      <div><label for="lm-sort">Sort order</label><input type="number" id="lm-sort" value="0"></div>
+      <div><label for="lm-beds">Beds</label><input type="number" id="lm-beds" value="4"></div>
+      <div><label for="lm-baths">Baths</label><input type="number" id="lm-baths" value="4"></div>
+      <div><label for="lm-builtup">Built-up</label><input type="text" id="lm-builtup" placeholder="3399 - 3399 ft²"></div>
+      <div><label for="lm-landarea">Land area</label><input type="text" id="lm-landarea" placeholder="314,938 ft²"></div>
+      <div><label for="lm-proptype">Property type</label><input type="text" id="lm-proptype" placeholder="Landed"></div>
+      <div><label for="lm-category">Category</label><input type="text" id="lm-category" placeholder="Residential"></div>
+      <div><label for="lm-tenure">Tenure</label><input type="text" id="lm-tenure" placeholder="Freehold"></div>
+      <div><label for="lm-listedon">Listed on</label><input type="text" id="lm-listedon" placeholder="August 21, 2026"></div>
+      <div><label for="lm-completion">Completion date</label><input type="text" id="lm-completion" placeholder="December 30, 2026"></div>
+      <div><label for="lm-lat">Latitude</label><input type="text" id="lm-lat" placeholder="3.0244"></div>
+      <div><label for="lm-lng">Longitude</label><input type="text" id="lm-lng" placeholder="101.6172"></div>
+      <div class="span2">
+        <label>Photo</label>
+        <input type="file" id="lm-photo-file" accept="image/*" class="hidden">
+        <div class="drop" id="lm-drop" tabindex="0" role="button" aria-label="Upload listing photo" onclick="document.getElementById('lm-photo-file').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+          <div id="lm-photo-preview"></div>
+          <strong id="lm-drop-title">Drop a photo here or click to upload</strong>
+          <span id="lm-drop-sub">JPG or PNG. Large photos are resized automatically so the page loads fast.</span>
+        </div>
+        <button class="btn btn-danger hidden" id="lm-photo-remove" type="button" style="margin-top:8px;align-self:flex-start;" onclick="clearListingPhoto()">Remove photo</button>
+        <input type="hidden" id="lm-photo-b64">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeListingModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveListing()">Save listing</button>
+    </div>
+    <div id="listing-modal-status" class="d-status" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- Security modal -->
+<div id="security-modal" class="modal-backdrop" onclick="if(event.target===this) this.style.display='none'">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sec-title" style="max-width:540px;">
+    <h3 id="sec-title">Lock your data to your admin account</h3>
+    <p id="sec-status">You're logging in with your admin account now. One more step makes sure nobody can read enquiries without logging in.</p>
+    <ol>
+      <li>In Supabase, go to <b>Authentication → Sign In / Providers</b> and turn off <b>Allow new users to sign up</b>.</li>
+      <li>Open <b>admin-security.sql</b> and check the admin list (already set to <b>iqi@madrealty.co</b>).</li>
+      <li>Paste it into <b>SQL Editor</b> and click Run.</li>
+      <li>Refresh this page. This message disappears once it's locked.</li>
+    </ol>
+    <p style="margin-top:12px;">The landing page keeps working: visitors can still send enquiries and see listings.</p>
+    <div class="modal-actions"><button class="btn btn-dark" onclick="document.getElementById('security-modal').style.display='none'">Got it</button></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ADMIN CONFIG
+   - Log in with a username + password. Behind the scenes the
+     username is looked up in ADMIN_USERS to find its email,
+     which must exist in Supabase → Authentication → Users.
+     e.g. Jayden155  ->  iqi@madrealty.co
+   - Passwords live in Supabase, never in this file.
+   - Run admin-security.sql once so only admin accounts can
+     read or change enquiries, listings and site content.
+   - "Unread" is remembered in this browser only.
+   ============================================================ */
+const ADMIN_USERS = {            // username (lowercase) -> Supabase login email
+  "jayden155": "iqi@madrealty.co"
+};
+
+const SUPABASE_URL = "https://clmdzczzxpvyzuthwqno.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsbWR6Y3p6eHB2eXp1dGh3cW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MDAxMDEsImV4cCI6MjA5OTA3NjEwMX0.9SnyXBdzZMp0gNT2B4UtupKaZB5hB4S9TSJ93gS8keM";
+const SUPABASE_TABLE = "enquiries";
+
+const PHOTO_MAX_SIDE = 1600;   // listing photos are resized to this many px on the longest side
+const PHOTO_QUALITY = 0.82;    // JPEG quality after resizing
+
+const AV_COLORS = [["#FDE3D2","#8F3400"],["#E6EEF9","#1F4E8C"],["#EEE7FB","#553399"],["#FCF0D9","#7A5200"],["#E3F2E8","#1B6B3C"],["#FCE3EA","#8A2146"]];
+const APPLICANT_INTEREST = "Join as Negotiator";
+const SEEN_KEY = "iqi_admin_seen";
+
+const state = { view:"today", enquiries:[], listings:[], readTab:"All", q:"", interest:"", selectedId:null, loaded:false, listingsLoaded:false };
+let contentLoaded = false;
+
+/* ---------------- helpers ---------------- */
+function escapeHtml(str){
+  return String(str ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+function sbHeaders(extra){ return Object.assign({ apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${session ? session.access_token : SUPABASE_ANON_KEY}` }, extra || {}); }
+function initials(name){
+  const parts = String(name || "?").trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || "?") + (parts.length > 1 ? parts[parts.length-1][0] : "")).toUpperCase();
+}
+function avatar(name, cls){
+  let h = 0; for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const [bg, fg] = AV_COLORS[h % AV_COLORS.length];
+  return `<span class="av ${cls||""}" style="background:${bg};color:${fg};">${escapeHtml(initials(name))}</span>`;
+}
+function hoursSince(d){ return (Date.now() - new Date(d).getTime()) / 36e5; }
+function ago(d){
+  if (!d) return "—";
+  const h = hoursSince(d);
+  if (h < 1) return Math.max(1, Math.round(h * 60)) + "m ago";
+  if (h < 48) return Math.round(h) + "h ago";
+  return Math.round(h / 24) + "d ago";
+}
+function fmtDate(d){ return d ? new Date(d).toLocaleString(undefined, { day:"numeric", month:"short", year:"numeric", hour:"numeric", minute:"2-digit" }) : "—"; }
+function startOfToday(){ const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+function isApplicant(e){ return e.interest === APPLICANT_INTEREST; }
+function waNumber(phone){
+  let d = String(phone || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.startsWith("0")) d = "6" + d;                       // 012... -> 6012...
+  else if (d.startsWith("1") && d.length <= 10) d = "60" + d;
+  return d;
+}
+function waLink(e){
+  const n = waNumber(e.phone);
+  if (!n) return "";
+  return `https://wa.me/${n}?text=${encodeURIComponent(`Hi ${e.name || ""}, this is IQI MAD Realty replying to your enquiry.`)}`;
+}
+function icon(name, size){
+  size = size || 16;
+  const P = {
+    wa:'<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/>',
+    dots:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+    check:'<path d="M5 12l5 5 9-10"/>',
+    house:'<path d="M4 11l8-6 8 6v9H4z"/><path d="M10 20v-5h4v5"/>',
+    close:'<path d="M6 6l12 12M18 6L6 18"/>',
+    upload:'<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>'
+  };
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${name==='check'?3:2}" stroke-linecap="round" stroke-linejoin="round">${P[name]}</svg>`;
+}
+
+/* ---------------- unread (this browser only) ---------------- */
+function getSeen(){ try { return new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || "[]")); } catch(e){ return new Set(); } }
+function saveSeen(set){ try { localStorage.setItem(SEEN_KEY, JSON.stringify([...set])); } catch(e){} }
+let seen = getSeen();
+function isUnread(e){ return !seen.has(String(e.id)); }
+function markRead(id){ if (!seen.has(String(id))) { seen.add(String(id)); saveSeen(seen); } }
+function markAllRead(){ state.enquiries.forEach(e => seen.add(String(e.id))); saveSeen(seen); renderAll(); }
+
+/* ---------------- auth (Supabase email login) ---------------- */
+const SESSION_KEY = "iqi_admin_session";
+let session = null;
+try { session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch(e) { session = null; }
+
+function saveSession(data, email){
+  session = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Date.now() + (Number(data.expires_in) || 3600) * 1000,
+    email: email || data.user?.email || session?.email || "",
+    username: session?.username || ""
+  };
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch(e) {}
+}
+function clearSession(){ session = null; try { localStorage.removeItem(SESSION_KEY); } catch(e) {} }
+
+async function authCall(path, method, body, token){
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
+    method,
+    headers: Object.assign({ apikey: SUPABASE_ANON_KEY, "Content-Type":"application/json" }, token ? { Authorization: `Bearer ${token}` } : {}),
+    body: body ? JSON.stringify(body) : undefined
+  });
+  let data = {}; try { data = await res.json(); } catch(e) {}
+  if (!res.ok) {
+    const msg = data.error_description || data.msg || data.message || data.error || `Request failed (${res.status})`;
+    const err = new Error(msg); err.status = res.status; throw err;
+  }
+  return data;
+}
+async function ensureSession(){
+  if (!session) throw new Error("not logged in");
+  if (session.expires_at - 60000 > Date.now()) return;
+  try {
+    const data = await authCall("token?grant_type=refresh_token", "POST", { refresh_token: session.refresh_token });
+    saveSession(data);
+  } catch (e) {
+    sessionExpired();
+    throw e;
+  }
+}
+async function sbFetch(url, opts){
+  opts = opts || {};
+  await ensureSession();
+  opts.headers = Object.assign({}, opts.headers || {}, { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${session.access_token}` });
+  const res = await fetch(url, opts);
+  if (res.status === 401) { sessionExpired(); throw new Error("Session expired"); }
+  return res;
+}
+function sessionExpired(){
+  clearSession();
+  showLogin("Your session has ended. Please log in again.");
+}
+
+function loginMsg(err, ok){
+  const e = document.getElementById("login-error"), o = document.getElementById("login-ok");
+  e.textContent = err || ""; e.style.display = err ? "block" : "none";
+  o.textContent = ok || ""; o.style.display = ok ? "block" : "none";
+}
+function busy(btnId, on, label){
+  const b = document.getElementById(btnId);
+  if (on) { b.dataset.label = b.textContent; b.textContent = label; b.disabled = true; }
+  else { b.textContent = b.dataset.label || b.textContent; b.disabled = false; }
+}
+function showLogin(msg){
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("login-gate").style.display = "flex";
+  loginMsg(msg || "", "");
+  document.getElementById("password-input").value = "";
+}
+
+function usernameToEmail(u){
+  u = u.trim();
+  if (u.includes("@")) return u.toLowerCase();
+  return ADMIN_USERS[u.toLowerCase()] || "";
+}
+async function doLogin(){
+  const username = document.getElementById("login-user").value.trim();
+  const password = document.getElementById("password-input").value;
+  if (!username || !password) { loginMsg("Please enter your username and password.", ""); return; }
+  const email = usernameToEmail(username);
+  if (!email) { loginMsg("Wrong username or password.", ""); return; }
+  loginMsg("", ""); busy("login-btn", true, "Logging in…");
+  try {
+    const data = await authCall("token?grant_type=password", "POST", { email, password });
+    session = null;
+    saveSession(data, email);
+    session.username = username.includes("@") ? username.split("@")[0] : username;
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch(e) {}
+    await afterLogin();
+  } catch (err) {
+    console.error(err);
+    loginMsg(/invalid/i.test(err.message) ? "Wrong username or password." : /confirm/i.test(err.message) ? "This account hasn't been confirmed yet. Confirm it in Supabase → Authentication → Users." : "Could not log in: " + err.message, "");
+  }
+  busy("login-btn", false);
+}
+async function logOut(){
+  const token = session?.access_token;
+  clearSession();
+  if (token) authCall("logout", "POST", null, token).catch(() => {});
+  showLogin("");
+}
+
+// Is this login on the admin list? Needs admin-security.sql (function is_admin).
+// true  -> locked down, allowed
+// false -> logged in but not an admin -> sign out
+// null  -> security SQL not run yet -> allowed, show warning
+async function checkAdmin(){
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/rpc/is_admin`, { method:"POST", headers:{ "Content-Type":"application/json" }, body:"{}" });
+    if (!res.ok) return null;
+    return (await res.json()) === true;
+  } catch (e) { if (!session) throw e; return null; }
+}
+async function afterLogin(){
+  const ok = await checkAdmin();
+  if (ok === false) {
+    clearSession();
+    showLogin("This account is not on the admin list. Add it in admin-security.sql.");
+    return;
+  }
+  state.secured = ok === true;
+  showDashboard();
+}
+function showDashboard(){
+  document.getElementById("login-gate").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  const who = session?.username || (session?.email || "Admin").split("@")[0];
+  document.getElementById("me-email").textContent = who;
+  document.getElementById("me-email").title = who;
+  document.getElementById("me-av").textContent = (who[0] || "A").toUpperCase();
+  document.getElementById("security-banner").classList.toggle("hidden", !!state.secured);
+  document.getElementById("sb-secure").classList.toggle("hidden", !!state.secured);
+  go(state.view);
+  loadEnquiries();
+  loadListings();
+}
+
+/* ---------------- navigation ---------------- */
+const VIEW_TITLES = { today:"Today", leads:"Enquiries", applicants:"Applicants", listings:"Listings", content:"Site content" };
+function go(view){
+  state.view = view;
+  document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+  document.getElementById("view-" + view).classList.remove("hidden");
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  document.getElementById("crumb-cur").textContent = VIEW_TITLES[view];
+  document.getElementById("content").scrollTop = 0;
+  toggleSidebar(false);
+  if (view !== "leads") closeDrawer();
+  if (view === "content" && !contentLoaded) { contentLoaded = true; loadSiteContentIntoForm(); }
+  renderAll();
+}
+function toggleSidebar(open){
+  document.getElementById("sidebar").classList.toggle("open", !!open);
+  document.getElementById("sb-scrim").classList.toggle("on", !!open);
+}
+function globalSearch(v){
+  state.q = v;
+  document.getElementById("search-input").value = v;
+  if (state.view !== "leads") go("leads"); else renderLeads();
+}
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && document.getElementById("dashboard").style.display === "block") {
+    e.preventDefault();
+    if (window.innerWidth <= 900) { if (state.view !== "leads") go("leads"); document.getElementById("search-input").focus(); }
+    else document.getElementById("global-search").focus();
+  }
+  if (e.key === "Escape") { closeDrawer(); closeListingModal(); document.getElementById("security-modal").style.display = "none"; toggleSidebar(false); }
+});
+
+/* ---------------- data ---------------- */
+function showConfigError(msg){
+  const w = document.getElementById("config-warning");
+  w.classList.toggle("hidden", !msg); w.textContent = msg || "";
+}
+async function loadEnquiries(){
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?select=*&order=created_at.desc`, { headers: sbHeaders() });
+    if (!res.ok) throw new Error("Request failed: " + res.status);
+    state.enquiries = await res.json();
+    // First time on this browser: treat everything older than today as already read,
+    // so the unread badge only counts genuinely new enquiries.
+    if (!localStorage.getItem(SEEN_KEY)) {
+      const t0 = startOfToday();
+      state.enquiries.forEach(e => { if (new Date(e.created_at) < t0) seen.add(String(e.id)); });
+      saveSeen(seen);
+    }
+    showConfigError("");
+  } catch (err) {
+    console.error(err);
+    showConfigError('Could not load enquiries. Check your Supabase settings and that the "enquiries" table exists.');
+  }
+  state.loaded = true;
+  renderAll();
+}
+async function loadListings(){
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/listings?select=*&order=sort_order.asc`, { headers: sbHeaders() });
+    if (!res.ok) throw new Error("Request failed: " + res.status);
+    state.listings = await res.json();
+    state.listingsError = false;
+  } catch (err) {
+    console.error(err);
+    state.listingsError = true;
+  }
+  state.listingsLoaded = true;
+  renderAll();
+}
+function refreshAll(){
+  loadEnquiries(); loadListings();
+  if (contentLoaded) loadSiteContentIntoForm();
+}
+async function deleteEnquiry(id){
+  if (!confirm("Delete this enquiry? This cannot be undone.")) return;
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}?id=eq.${encodeURIComponent(id)}`, { method:"DELETE", headers: sbHeaders() });
+    if (!res.ok) throw new Error("Delete failed: " + res.status);
+    state.enquiries = state.enquiries.filter(e => String(e.id) !== String(id));
+    if (String(state.selectedId) === String(id)) { state.selectedId = null; closeDrawer(); }
+    renderAll();
+  } catch (err) { alert("Could not delete this enquiry. Please try again."); console.error(err); }
+}
+
+/* ---------------- render: shared ---------------- */
+function renderAll(){
+  renderChrome();
+  if (state.view === "today") renderToday();
+  if (state.view === "leads") { renderLeads(); renderDrawer(); }
+  if (state.view === "applicants") renderApplicants();
+  if (state.view === "listings") renderListings();
+}
+function renderChrome(){
+  const all = state.enquiries;
+  const unread = all.filter(isUnread).length;
+  const leadsCount = document.getElementById("sb-leads-count");
+  leadsCount.textContent = unread ? `${unread} new` : all.length;
+  leadsCount.classList.toggle("hot", !!unread);
+  const readN = all.length - unread;
+  document.getElementById("stat-read-bar").style.width = (all.length ? readN / all.length * 100 : 0) + "%";
+  document.getElementById("stat-read-text").textContent = state.loaded ? `${readN} of ${all.length} read` : "Loading…";
+  const withPhoto = state.listings.filter(r => r.photo).length;
+  document.getElementById("stat-photo-bar").style.width = (state.listings.length ? withPhoto / state.listings.length * 100 : 0) + "%";
+  document.getElementById("stat-photo-text").textContent = state.listingsLoaded ? `${withPhoto} of ${state.listings.length} listings` : "Loading…";
+  document.getElementById("sb-app-count").textContent = all.filter(isApplicant).length;
+  document.getElementById("sb-list-count").textContent = state.listings.length;
+
+  const n = new Date(); const som = new Date(n.getFullYear(), n.getMonth(), 1);
+  document.getElementById("month-num").textContent = all.filter(e => new Date(e.created_at) >= som).length;
+  document.getElementById("month-sub").textContent = state.loaded ? (unread ? `${unread} unread` : "all caught up") : "Loading…";
+
+  const chip = document.getElementById("crumb-chip");
+  const chipText = { today: unread ? `${unread} unread` : "", leads: String(all.length), applicants: String(all.filter(isApplicant).length), listings: String(state.listings.length), content: "" }[state.view];
+  chip.textContent = chipText; chip.classList.toggle("hidden", !chipText);
+  renderFloatBar();
+}
+
+/* ---------------- TODAY ---------------- */
+function renderToday(){
+  const el = document.getElementById("view-today");
+  if (!state.loaded) { el.innerHTML = `<div class="loading">Loading…</div>`; return; }
+  const all = state.enquiries;
+  const t0 = startOfToday();
+  const w1 = new Date(t0); w1.setDate(w1.getDate() - 7);
+  const unread = all.filter(isUnread);
+  const kpis = [
+    { dark:true, label:"Unread enquiries", num: unread.length, sub: unread.length ? "Reply on WhatsApp in one tap" : "All caught up" },
+    { label:"New today", num: all.filter(e => new Date(e.created_at) >= t0).length, sub:"Since midnight" },
+    { label:"Last 7 days", num: all.filter(e => new Date(e.created_at) >= w1).length, sub:"Enquiries received" },
+    { label:"Live listings", num: state.listings.length, sub:"Showing on the landing page" }
+  ];
+  const kpiHtml = `<div class="kpis">${kpis.map(k => `<div class="kpi ${k.dark?'dark':''}"><div class="k-label">${k.label}</div><div class="k-num">${k.num}</div><div class="k-sub" ${k.dark && !unread.length ? '' : ''}>${k.sub}</div></div>`).join("")}</div>`;
+
+  const cards = (unread.length ? unread : all).slice(0, 3);
+  const cardsHtml = cards.length ? `<div class="att-grid">${cards.map(e => {
+    const wa = waLink(e);
+    return `<div class="att">
+      <div class="att-frame"><div class="att-inner">
+        <div class="att-top">${avatar(e.name || "?", "lg")}${wa ? `<a class="pill-dark" href="${wa}" target="_blank" rel="noopener" onclick="markRead('${escapeHtml(e.id)}')">${icon("wa",14)}WhatsApp</a>` : `<span class="muted" style="font-size:12.5px;">No phone number</span>`}</div>
+        <div class="att-msg">${escapeHtml(e.message || "No message.")}</div>
+      </div></div>
+      <div class="att-foot"><div><strong>${escapeHtml(e.name || "—")}</strong><span class="muted">${escapeHtml(e.interest || "Enquiry")} · ${ago(e.created_at)}</span></div>
+      <button class="ghost-round" aria-label="Open enquiry from ${escapeHtml(e.name || "unknown")}" onclick="openLead('${escapeHtml(e.id)}')">${icon("dots",16)}</button></div>
+    </div>`;
+  }).join("")}</div>` : `<div class="empty">No enquiries yet. When someone fills in the form on the landing page, it shows up here.</div>`;
+
+  let listHtml;
+  if (!state.listingsLoaded) listHtml = `<div class="loading">Loading listings…</div>`;
+  else if (state.listingsError) listHtml = `<div class="banner err">Could not load listings. Check that the "listings" table exists in Supabase.</div>`;
+  else listHtml = `<div class="list-grid">${state.listings.slice(0, 3).map(listingCard).join("")}
+      <button class="l-card" style="border:1.5px dashed var(--line-2);background:#fff;align-items:center;justify-content:center;min-height:250px;color:var(--ink-2);font-weight:600;" onclick="openListingModal()">
+        <span class="house" style="border-radius:99px;">${icon("upload",18)}</span>Add a listing with photo
+      </button></div>`;
+
+  el.innerHTML = `
+    ${kpiHtml}
+    <div class="sec"><div class="sec-head"><h2>${unread.length ? "New enquiries" : "Latest enquiries"}</h2><button class="link-btn" onclick="go('leads')">View all</button></div>${cardsHtml}</div>
+    <div class="sec"><div class="sec-head"><h2>Listings</h2><button class="link-btn" onclick="go('listings')">Manage listings</button></div>${listHtml}</div>
+    <div class="sec">
+      <div class="sec-head"><h2>Recent enquiries</h2></div>
+      <div class="table-wrap">${all.length ? leadsTableHtml(all.slice(0, 5)) : `<div class="empty">No enquiries yet.</div>`}</div>
+    </div>`;
+}
+function renderFloatBar(){
+  const bar = document.getElementById("float-bar");
+  const unread = state.enquiries.filter(isUnread);
+  if (state.view !== "today" || !unread.length) { bar.classList.add("hidden"); return; }
+  const newest = unread[0];
+  bar.innerHTML = `<span class="fb-icon">${icon("house",17)}</span>
+    <strong>${unread.length} unread ${unread.length === 1 ? "enquiry" : "enquiries"}</strong>
+    <span class="fb-meta">Latest from ${escapeHtml(newest.name || "—")}, ${ago(newest.created_at)}</span>
+    <span class="grow"></span>
+    <button class="btn" onclick="markAllRead()">Mark all as read</button>
+    <button class="btn btn-dark" onclick="state.readTab='Unread'; go('leads');">View unread</button>`;
+  bar.classList.remove("hidden");
+}
+
+/* ---------------- ENQUIRIES ---------------- */
+function leadsTableHtml(rows){
+  return `<div class="tbl" style="min-width:680px;">
+    <div class="t-head" style="grid-template-columns:24px minmax(0,1.6fr) minmax(0,1.3fr) minmax(0,1fr) minmax(0,.8fr);"><span></span><span>Name</span><span>Contact</span><span>Interest</span><span>Received</span></div>
+    ${rows.map(e => {
+      const sel = String(e.id) === String(state.selectedId);
+      const un = isUnread(e);
+      return `<button class="t-row ${sel?'sel':''} ${un?'unread':''}" style="grid-template-columns:24px minmax(0,1.6fr) minmax(0,1.3fr) minmax(0,1fr) minmax(0,.8fr);" onclick="openLead('${escapeHtml(e.id)}')">
+        <span>${un ? `<span class="unread-dot" title="Unread"></span>` : ""}</span>
+        <span class="lead-cell">${avatar(e.name || "?", "lg")}<span class="txt"><strong>${escapeHtml(e.name || "—")}</strong><span>${escapeHtml((e.message || "").slice(0, 60)) || "No message"}</span></span></span>
+        <span class="lead-cell"><span class="txt"><span style="color:var(--ink-2)">${escapeHtml(e.phone || "—")}</span><span>${escapeHtml(e.email || "")}</span></span></span>
+        <span><span class="tag">${escapeHtml(e.interest || "—")}</span></span>
+        <span class="muted" style="font-size:13.5px;">${ago(e.created_at)}</span>
+      </button>`;
+    }).join("")}
+  </div>`;
+}
+function filteredLeads(){
+  const q = state.q.toLowerCase().trim();
+  return state.enquiries.filter(e => {
+    const mq = !q || [e.name, e.email, e.phone, e.message].some(v => String(v || "").toLowerCase().includes(q));
+    const mi = !state.interest || e.interest === state.interest;
+    const mr = state.readTab === "All" || isUnread(e);
+    return mq && mi && mr;
+  });
+}
+function renderLeads(){
+  const unread = state.enquiries.filter(isUnread).length;
+  document.getElementById("read-tabs").innerHTML = ["All", "Unread"].map(t =>
+    `<button class="${state.readTab===t?'on':''}" onclick="state.readTab='${t}'; renderLeads();">${state.readTab===t ? `<span class="tick">${icon("check",11)}</span>` : ""}${t} <span class="n">${t==='All' ? state.enquiries.length : unread}</span></button>`).join("");
+  const box = document.getElementById("leads-table");
+  if (!state.loaded) { box.innerHTML = `<div class="loading">Loading enquiries…</div>`; return; }
+  const rows = filteredLeads();
+  box.innerHTML = rows.length ? leadsTableHtml(rows) : `<div class="empty">${state.readTab === "Unread" && !state.q && !state.interest ? "No unread enquiries. You're all caught up." : "No enquiries match your search."}</div>`;
+}
+function openLead(id){
+  state.selectedId = id;
+  markRead(id);
+  if (state.view !== "leads") go("leads"); else renderAll();
+  document.getElementById("drawer").classList.add("open");
+  if (window.innerWidth <= 1100) document.getElementById("drawer-scrim").classList.add("on");
+}
+function closeDrawer(){
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("drawer-scrim").classList.remove("on");
+}
+function renderDrawer(){
+  const d = document.getElementById("drawer");
+  const e = state.enquiries.find(x => String(x.id) === String(state.selectedId));
+  if (!e) { d.innerHTML = `<div class="drawer-empty">Select an enquiry to read the full message and reply.</div>`; return; }
+  const wa = waLink(e);
+  d.innerHTML = `
+    <div class="d-hero">
+      <div class="d-hero-top">${avatar(e.name || "?", "xl")}<div class="grow"><strong>${escapeHtml(e.name || "—")}</strong><span>${escapeHtml(e.interest || "Enquiry")} · ${ago(e.created_at)}</span></div>
+        <button class="circle-btn d-close" aria-label="Close details" onclick="closeDrawer()">${icon("close",16)}</button></div>
+      <div class="d-actions">
+        <a class="wa ${wa?'':'off'}" href="${wa || '#'}" target="_blank" rel="noopener">${icon("wa",14)}WhatsApp</a>
+        <a class="${e.phone?'':'off'}" href="${e.phone ? 'tel:' + escapeHtml(e.phone) : '#'}">Call</a>
+        <a class="${e.email?'':'off'}" href="${e.email ? 'mailto:' + escapeHtml(e.email) : '#'}">Email</a>
+      </div>
+    </div>
+    <div class="d-info">
+      <div><span>Phone</span><span>${escapeHtml(e.phone || "—")}</span></div>
+      <div><span>Email</span><span>${escapeHtml(e.email || "—")}</span></div>
+      <div><span>Interest</span><span>${escapeHtml(e.interest || "—")}</span></div>
+      <div><span>Received</span><span>${fmtDate(e.created_at)}</span></div>
+    </div>
+    <div class="d-label">Message</div>
+    <div class="d-msg">${escapeHtml(e.message || "No message.")}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn" onclick="seen.delete('${escapeHtml(e.id)}'); saveSeen(seen); renderAll();">Mark as unread</button>
+      <button class="btn btn-danger" onclick="deleteEnquiry('${escapeHtml(e.id)}')">Delete enquiry</button>
+    </div>`;
+}
+function exportCSV(){
+  const rows = filteredLeads();
+  if (!rows.length) { alert("No data to export."); return; }
+  const headers = ["created_at","name","phone","email","interest","message"];
+  downloadCSV(headers, rows.map(e => headers.map(h => e[h])), "iqi-enquiries.csv");
+}
+function downloadCSV(headers, rows, filename){
+  const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(","))].join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type:"text/csv" }));
+  const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------------- APPLICANTS ----------------
+   Same rows as enquiries, tagged interest = "Join as Negotiator".
+   Extra fields were folded into "message", so we parse them back out. */
+function parseApplicantMessage(msg){
+  msg = msg || "";
+  const exp = msg.match(/Experience:\s*([^|]+)/i);
+  const country = msg.match(/Country:\s*([^|]+)/i);
+  return { experience: exp ? exp[1].trim() : "—", country: country ? country[1].trim() : "—", newsletter: /Subscribed to newsletter/i.test(msg) };
+}
+function renderApplicants(){
+  const apps = state.enquiries.filter(isApplicant);
+  const t0 = startOfToday(); const w1 = new Date(t0); w1.setDate(w1.getDate() - 7);
+  const k = [
+    { dark:true, label:"Total applicants", num: apps.length, sub:"All time" },
+    { label:"Today", num: apps.filter(e => new Date(e.created_at) >= t0).length, sub:"Since midnight" },
+    { label:"Last 7 days", num: apps.filter(e => new Date(e.created_at) >= w1).length, sub:"New applicants" },
+    { label:"Subscribed to newsletter", num: apps.filter(e => parseApplicantMessage(e.message).newsletter).length, sub:"Opted in on the form" }
+  ];
+  document.getElementById("app-kpis").innerHTML = k.map(x => `<div class="kpi ${x.dark?'dark':''}"><div class="k-label">${x.label}</div><div class="k-num">${x.num}</div><div class="k-sub" style="${''}">${x.sub}</div></div>`).join("");
+  const q = document.getElementById("app-search-input").value.toLowerCase();
+  const rows = apps.filter(e => !q || [e.name, e.email, e.phone].some(v => String(v || "").toLowerCase().includes(q)));
+  const box = document.getElementById("applicants-table");
+  if (!state.loaded) { box.innerHTML = `<div class="loading">Loading applicants…</div>`; return; }
+  if (!rows.length) { box.innerHTML = `<div class="empty">No Join / Register applicants yet.</div>`; return; }
+  box.innerHTML = `<div class="tbl" style="min-width:900px;">
+    <div class="t-head cols-apps"><span>Applicant</span><span>Contact</span><span>Experience</span><span>Country</span><span>Newsletter</span><span>Received</span><span></span></div>
+    ${rows.map(e => {
+      const p = parseApplicantMessage(e.message);
+      const wa = waLink(e);
+      return `<div class="t-row cols-apps">
+        <span class="lead-cell">${avatar(e.name || "?", "lg")}<span class="txt"><strong>${escapeHtml(e.name || "—")}</strong>${wa ? `<a class="t-link" style="font-size:12.5px;" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ""}</span></span>
+        <span style="display:flex;flex-direction:column;gap:2px;font-size:13px;min-width:0;">${e.phone ? `<a class="t-link" href="tel:${escapeHtml(e.phone)}">${escapeHtml(e.phone)}</a>` : ""}${e.email ? `<a class="t-link" style="overflow:hidden;text-overflow:ellipsis;" href="mailto:${escapeHtml(e.email)}">${escapeHtml(e.email)}</a>` : ""}</span>
+        <span style="font-size:13.5px;">${escapeHtml(p.experience)}</span>
+        <span><span class="tag">${escapeHtml(p.country)}</span></span>
+        <span>${p.newsletter ? `<span style="color:var(--green);">${icon("check",16)}</span>` : `<span class="muted">—</span>`}</span>
+        <span class="muted" style="font-size:13.5px;">${ago(e.created_at)}</span>
+        <span><button class="ghost-round" aria-label="Delete ${escapeHtml(e.name || "applicant")}" title="Delete" onclick="deleteEnquiry('${escapeHtml(e.id)}')">${icon("close",15)}</button></span>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+function exportApplicantsCSV(){
+  const apps = state.enquiries.filter(isApplicant);
+  if (!apps.length) { alert("No applicants to export."); return; }
+  const headers = ["created_at","name","phone","email","experience","country","newsletter"];
+  downloadCSV(headers, apps.map(e => { const p = parseApplicantMessage(e.message); return [e.created_at, e.name, e.phone, e.email, p.experience, p.country, p.newsletter ? "yes" : "no"]; }), "iqi-applicants.csv");
+}
+
+/* ---------------- LISTINGS ---------------- */
+function listingCard(r){
+  return `<div class="l-card">
+    <div class="l-thumb" ${r.photo ? `style="background-image:url('${escapeHtml(r.photo)}')"` : ""}>${r.photo ? "" : "No photo yet"}</div>
+    <div class="l-body"><strong>${escapeHtml(r.name || r.id)}</strong><span class="price">${escapeHtml(r.price || "")}</span><span>${escapeHtml(r.address || "")}</span></div>
+    <div class="l-actions"><button class="btn" style="flex-grow:1;" onclick="openListingModal('${escapeHtml(r.id)}')">Edit</button><button class="btn btn-danger" onclick="deleteListing('${escapeHtml(r.id)}')">Delete</button></div>
+  </div>`;
+}
+function renderListings(){
+  const c = document.getElementById("listings-container");
+  if (!state.listingsLoaded) { c.innerHTML = `<div class="loading">Loading listings…</div>`; return; }
+  if (state.listingsError) { c.innerHTML = `<div class="banner err">Could not load listings. Check that the "listings" table exists in Supabase (see the setup SQL).</div>`; return; }
+  if (!state.listings.length) { c.innerHTML = `<div class="empty">No listings yet. Add your first one with "+ Add listing".</div>`; return; }
+  c.innerHTML = `<div class="list-grid">${state.listings.map(listingCard).join("")}</div>`;
+}
+
+// Resize + compress photos in the browser before saving, so the landing page stays fast.
+function compressImage(file){
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith("image/")) { reject(new Error("Not an image")); return; }
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", PHOTO_QUALITY));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function fileToBase64(file){
+  return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = reject; r.readAsDataURL(file); });
+}
+function setListingPhoto(b64){
+  document.getElementById("lm-photo-b64").value = b64 || "";
+  document.getElementById("lm-photo-preview").innerHTML = b64 ? `<img src="${escapeHtml(b64)}" alt="Listing photo preview">` : "";
+  document.getElementById("lm-drop-title").textContent = b64 ? "Click or drop to replace the photo" : "Drop a photo here or click to upload";
+  document.getElementById("lm-photo-remove").classList.toggle("hidden", !b64);
+}
+function clearListingPhoto(){ setListingPhoto(""); document.getElementById("lm-photo-file").value = ""; }
+async function handleListingFile(file){
+  if (!file) return;
+  const sub = document.getElementById("lm-drop-sub");
+  sub.textContent = "Preparing photo…";
+  try {
+    const b64 = await compressImage(file);
+    setListingPhoto(b64);
+    sub.textContent = `Ready to save (${Math.round(b64.length * 0.75 / 1024)} KB).`;
+  } catch (err) {
+    console.error(err);
+    sub.textContent = "That file couldn't be read as an image. Try a JPG or PNG.";
+  }
+}
+document.getElementById("lm-photo-file").addEventListener("change", e => handleListingFile(e.target.files[0]));
+(function(){
+  const drop = document.getElementById("lm-drop");
+  ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => handleListingFile(e.dataTransfer.files[0]));
+})();
+
+function openListingModal(id){
+  const isEdit = !!id;
+  document.getElementById("listing-modal-title").textContent = isEdit ? "Edit listing" : "Add listing";
+  const st = document.getElementById("listing-modal-status"); st.textContent = ""; st.className = "d-status";
+  const r = isEdit ? state.listings.find(x => String(x.id) === String(id)) : null;
+  const set = (k, v) => document.getElementById(k).value = v;
+  set("lm-id-original", isEdit ? id : "");
+  set("lm-id", isEdit ? id : ""); document.getElementById("lm-id").disabled = isEdit;
+  set("lm-name", r?.name || ""); set("lm-address", r?.address || ""); set("lm-price", r?.price || "");
+  set("lm-sort", r?.sort_order ?? 0); set("lm-beds", r?.beds ?? 4); set("lm-baths", r?.baths ?? 4);
+  set("lm-builtup", r?.built_up || ""); set("lm-landarea", r?.land_area || ""); set("lm-proptype", r?.property_type || "");
+  set("lm-category", r?.category || ""); set("lm-tenure", r?.tenure || ""); set("lm-listedon", r?.listed_on || "");
+  set("lm-completion", r?.completion_date || ""); set("lm-lat", r?.lat ?? ""); set("lm-lng", r?.lng ?? "");
+  document.getElementById("lm-photo-file").value = "";
+  document.getElementById("lm-drop-sub").textContent = "JPG or PNG. Large photos are resized automatically so the page loads fast.";
+  setListingPhoto(r?.photo || "");
+  document.getElementById("listing-modal-backdrop").style.display = "flex";
+}
+function closeListingModal(){ document.getElementById("listing-modal-backdrop").style.display = "none"; }
+async function saveListing(){
+  const st = document.getElementById("listing-modal-status");
+  const v = k => document.getElementById(k).value;
+  const id = v("lm-id-original") || v("lm-id").trim();
+  if (!id) { st.textContent = "Please fill in an ID."; st.className = "d-status err"; return; }
+  const payload = {
+    id, name: v("lm-name"), address: v("lm-address"), price: v("lm-price"),
+    sort_order: Number(v("lm-sort")) || 0, beds: Number(v("lm-beds")) || 0, baths: Number(v("lm-baths")) || 0,
+    built_up: v("lm-builtup"), land_area: v("lm-landarea"), property_type: v("lm-proptype"), category: v("lm-category"),
+    tenure: v("lm-tenure"), listed_on: v("lm-listedon"), completion_date: v("lm-completion"),
+    lat: v("lm-lat") ? Number(v("lm-lat")) : null, lng: v("lm-lng") ? Number(v("lm-lng")) : null,
+    photo: v("lm-photo-b64")
+  };
+  st.textContent = "Saving…"; st.className = "d-status";
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/listings?on_conflict=id`, {
+      method:"POST", headers: sbHeaders({ "Content-Type":"application/json", Prefer:"resolution=merge-duplicates,return=minimal" }), body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Save failed: " + res.status);
+    closeListingModal();
+    await loadListings();
+    if (state.view !== "listings" && state.view !== "today") go("listings");
+  } catch (err) {
+    console.error(err);
+    st.textContent = 'Save failed. Check your Supabase setup (is the "listings" table created?).'; st.className = "d-status err";
+  }
+}
+async function deleteListing(id){
+  if (!confirm("Delete this listing? It will disappear from the landing page immediately, and this cannot be undone.")) return;
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/listings?id=eq.${encodeURIComponent(id)}`, { method:"DELETE", headers: sbHeaders() });
+    if (!res.ok) throw new Error("Delete failed: " + res.status);
+    state.listings = state.listings.filter(r => String(r.id) !== String(id));
+    renderAll();
+  } catch (err) { alert("Delete failed. Please try again."); console.error(err); }
+}
+
+/* ---------------- SITE CONTENT ---------------- */
+async function loadSiteContentIntoForm(){
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/site_content?select=key,value`, { headers: sbHeaders() });
+    if (!res.ok) throw new Error("Request failed: " + res.status);
+    const map = {}; (await res.json()).forEach(r => map[r.key] = r.value);
+    document.getElementById("cms-about-title").value = map.about_title || "";
+    document.getElementById("cms-about-p1").value = map.about_p1 || "";
+    document.getElementById("cms-about-p2").value = map.about_p2 || "";
+    document.getElementById("cms-contact-phone").value = map.contact_phone || "";
+    document.getElementById("cms-contact-email").value = map.contact_email || "";
+    if (map.hero_image) document.getElementById("cms-hero-preview").innerHTML = `<img src="${escapeHtml(map.hero_image)}" alt="">`;
+    if (map.story_image) document.getElementById("cms-story-preview").innerHTML = `<img src="${escapeHtml(map.story_image)}" alt="">`;
+    window._cmsHeroImage = map.hero_image || null;
+    window._cmsStoryImage = map.story_image || null;
+  } catch (err) {
+    console.error(err);
+    const s = document.getElementById("content-save-status");
+    s.textContent = 'Could not load site content. Check that the "site_content" table exists.'; s.className = "d-status err";
+  }
+}
+document.getElementById("cms-hero-image").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const b64 = await compressImage(f).catch(() => fileToBase64(f)); window._cmsHeroImage = b64;
+  document.getElementById("cms-hero-preview").innerHTML = `<img src="${b64}" alt="">`;
+});
+document.getElementById("cms-story-image").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const b64 = await compressImage(f).catch(() => fileToBase64(f)); window._cmsStoryImage = b64;
+  document.getElementById("cms-story-preview").innerHTML = `<img src="${b64}" alt="">`;
+});
+async function saveSiteContent(){
+  const s = document.getElementById("content-save-status");
+  const entries = [
+    { key:"about_title", value: document.getElementById("cms-about-title").value },
+    { key:"about_p1", value: document.getElementById("cms-about-p1").value },
+    { key:"about_p2", value: document.getElementById("cms-about-p2").value },
+    { key:"contact_phone", value: document.getElementById("cms-contact-phone").value },
+    { key:"contact_email", value: document.getElementById("cms-contact-email").value }
+  ];
+  if (window._cmsHeroImage) entries.push({ key:"hero_image", value: window._cmsHeroImage });
+  if (window._cmsStoryImage) entries.push({ key:"story_image", value: window._cmsStoryImage });
+  s.textContent = "Saving…"; s.className = "d-status";
+  try {
+    const res = await sbFetch(`${SUPABASE_URL}/rest/v1/site_content?on_conflict=key`, {
+      method:"POST", headers: sbHeaders({ "Content-Type":"application/json", Prefer:"resolution=merge-duplicates,return=minimal" }), body: JSON.stringify(entries)
+    });
+    if (!res.ok) throw new Error("Save failed: " + res.status);
+    s.textContent = "Saved. Refresh the landing page to see the new content."; s.className = "d-status ok";
+  } catch (err) {
+    console.error(err);
+    s.textContent = 'Save failed. Check your Supabase setup (is the "site_content" table created?).'; s.className = "d-status err";
+  }
+}
+
+/* ---------------- security modal ---------------- */
+function openSecurityModal(){ document.getElementById("security-modal").style.display = "flex"; toggleSidebar(false); }
+
+/* ---------------- boot ---------------- */
+(async function boot(){
+  if (session) {
+    try { await ensureSession(); await afterLogin(); }
+    catch (e) { if (!session) return; showLogin("Could not reach Supabase. Check your connection and try again."); }
+  } else showLogin("");
+})();
+
+</script>
+</body>
+</html>
